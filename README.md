@@ -1,16 +1,18 @@
-# yufuquant-sdk
+# yufuquant SDK
 
-yufuquant-sdk 封装了用于和 yufuquant 系统后端进行交互 API。
+yufuquant SDK 封装了用于和 yufuquant 后端进行交互的常用方法。
+
+yufuquant SDK 目前只支持 Python，由于大多数 API 都是基于 asyncio 的异步 API，因此要求 Python 的最低版本为 Python 3.7，推荐使用 Python 3.8。
 
 ## 安装
 
 ```bash
-$ pip install yufuquant-sdk
+$ pip install yufuquantsdk
 ```
 
 ## REST API 客户端
 
-REST API 客户端用于和 yufuquant 系统后台的 RESTful API 进行交互。
+REST API 客户端用于和 yufuquant 后端的 RESTful API 进行交互。
 
 ```python
 from yufuquantsdk.clients import RESTAPIClient
@@ -70,7 +72,7 @@ if __name__ == "__main__":
 
 ## Websocket API 客户端
 
-Websocket API 客户端用于和 yufuquant 系统后台的 Websocket API 进行交互。
+Websocket API 客户端用于和 yufuquant 后端的 Websocket API 进行交互。
 
 ```python
 from yufuquantsdk.clients import WebsocketAPIClient
@@ -89,10 +91,10 @@ await ws_api_client.sub(topics)
 # 取消话题订阅
 await ws_api_client.unsub(topics)
 
-# 发送 ping
+# 发送机器人 ping
 await ws_api_client.robot_ping()
 
-# 发送日志
+# 发送机器人日志
 await ws_api_client.robot_log()
 ```
 
