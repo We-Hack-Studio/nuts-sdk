@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "yufuquantsdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "SDK for yufuquant development."
 license = "MIT"
 readme = "README.md"
