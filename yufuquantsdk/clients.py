@@ -3,6 +3,7 @@ import json
 import logging
 from datetime import datetime
 from typing import Any, Dict, Iterable, Optional, Set
+
 import httpx
 import websockets
 from websockets import exceptions
@@ -170,7 +171,8 @@ class RESTAPIClient:
 
     async def patch_robot_asset_record(self, robot_id: int, data: Dict[str, Any]):
         req_path = ROBOT_ASSET_RECORD_REQ_PATH.format(robot_id=robot_id)
-        return await self._request("PATCH", req_path, data=data)
+        d = {"data": {"type": "robots", "id": robot_id, "attributes": data}}
+        return await self._request("PATCH", req_path, data=d)
 
     async def post_robot_ping(self, robot_id: int):
         req_path = ROBOT_PING_REQ_PATH.format(robot_id=robot_id)
@@ -185,7 +187,7 @@ class RESTAPIClient:
         data: Optional[Dict] = None,
         auth: bool = True,
     ):
-        req_headers = {}
+        req_headers = {"Content-Type": "application/vnd.api+json"}
         if auth:
             req_headers["Authorization"] = f"Token {self._auth_token}"
         if headers is not None:
