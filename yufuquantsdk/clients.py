@@ -155,9 +155,10 @@ class WebsocketAPIClient:
 
 
 ROBOT_REQ_PATH = "/robots/{robot_id}/"
-ROBOT_CONFIG_REQ_PATH = "/robots/{robot_id}/config/"
 ROBOT_PING_REQ_PATH = "/robots/{robot_id}/ping/"
 ROBOT_ASSET_RECORD_REQ_PATH = "/robots/{robot_id}/assetRecord/"
+ROBOT_STRATEGY_PARAMETERS_REQ_PATH = "/robots/{robot_id}/strategyParameters/"
+ROBOT_CREDENTIAL_KEY_REQ_PATH = "/robots/{robot_id}/credentialKey/"
 
 
 class RESTAPIClient:
@@ -165,18 +166,25 @@ class RESTAPIClient:
         self._base_url: str = base_url.rstrip("/")
         self._auth_token: str = auth_token
 
-    async def get_robot_config(self, robot_id: int):
-        req_path = ROBOT_CONFIG_REQ_PATH.format(robot_id=robot_id)
+    async def get_robot(self, robot_id: int):
+        req_path = ROBOT_REQ_PATH.format(robot_id=robot_id)
         return await self._request("GET", req_path)
 
-    async def patch_robot_asset_record(self, robot_id: int, data: Dict[str, Any]):
+    async def update_robot_asset_record(self, robot_id: int, data: Dict[str, Any]):
         req_path = ROBOT_ASSET_RECORD_REQ_PATH.format(robot_id=robot_id)
-        d = {"data": {"type": "robots", "id": robot_id, "attributes": data}}
-        return await self._request("PATCH", req_path, data=d)
+        return await self._request("PATCH", req_path, data=data)
 
-    async def post_robot_ping(self, robot_id: int):
+    async def ping_robot(self, robot_id: int):
         req_path = ROBOT_PING_REQ_PATH.format(robot_id=robot_id)
         return await self._request("POST", req_path)
+
+    async def get_robot_strategy_parameters(self, robot_id: int):
+        req_path = ROBOT_STRATEGY_PARAMETERS_REQ_PATH.format(robot_id=robot_id)
+        return await self._request("GET", req_path)
+
+    async def get_robot_credential_key(self, robot_id: int):
+        req_path = ROBOT_CREDENTIAL_KEY_REQ_PATH.format(robot_id=robot_id)
+        return await self._request("GET", req_path)
 
     async def _request(
         self,
@@ -187,7 +195,7 @@ class RESTAPIClient:
         data: Optional[Dict] = None,
         auth: bool = True,
     ):
-        req_headers = {"Content-Type": "application/vnd.api+json"}
+        req_headers = {"Content-Type": "application/json"}
         if auth:
             req_headers["Authorization"] = f"Token {self._auth_token}"
         if headers is not None:
