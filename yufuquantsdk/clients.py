@@ -16,7 +16,7 @@ class WebsocketAPIClient:
         self._uri: str = uri
         self._ws: websockets.WebSocketClientProtocol = ws
         self._authed: bool = False
-        self._auth_token = ""
+        self._api_key = ""
         self._sub_topics: Set[str] = set()
         self._inputs: asyncio.Queue[str] = asyncio.Queue()
         self._outputs: asyncio.Queue[str] = asyncio.Queue(maxsize=100)
@@ -24,14 +24,14 @@ class WebsocketAPIClient:
             self._run()
         )
 
-    async def auth(self, auth_token: str):
+    async def auth(self, api_key: str):
         message = {
             "cmd": "auth",
-            "token": auth_token,
+            "api_key": api_key,
         }
         await self._deliver(json.dumps(message))
         self._authed = True
-        self._auth_token = auth_token
+        self._api_key = api_key
 
     async def sub(self, topics: Iterable[str]):
         # Remove duplicated topics
@@ -85,7 +85,7 @@ class WebsocketAPIClient:
         await self._connect()
 
         if self._authed:
-            await self.auth(self._auth_token)
+            await self.auth(self._api_key)
 
         if len(self._sub_topics) > 0:
             await self.sub(self._sub_topics)
@@ -162,9 +162,9 @@ ROBOT_CREDENTIAL_KEY_REQ_PATH = "/robots/{robot_id}/credentialKey/"
 
 
 class RESTAPIClient:
-    def __init__(self, base_url: str, auth_token: str):
+    def __init__(self, base_url: str, api_key: str):
         self._base_url: str = base_url.rstrip("/")
-        self._auth_token: str = auth_token
+        self._api_key: str = api_key
 
     async def get_robot(self, robot_id: int):
         req_path = ROBOT_REQ_PATH.format(robot_id=robot_id)
@@ -197,7 +197,7 @@ class RESTAPIClient:
     ):
         req_headers = {"Content-Type": "application/json"}
         if auth:
-            req_headers["Authorization"] = f"Token {self._auth_token}"
+            req_headers["X-Api-Key"] = self._api_key
         if headers is not None:
             req_headers.update(headers)
 
