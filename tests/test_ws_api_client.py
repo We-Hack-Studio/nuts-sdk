@@ -15,7 +15,7 @@ async def main():
     ws_api_client = WebsocketAPIClient(uri=uri)
 
     await ws_api_client.auth(api_key)
-    await ws_api_client.sub(topics=["robot#1.log"])
+    await ws_api_client.sub(topics=["robot#5.log"])
     while True:
         await ws_api_client.robot_ping()
         await ws_api_client.robot_log("Test robot log...", level="INFO")

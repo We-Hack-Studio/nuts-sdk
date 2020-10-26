@@ -58,7 +58,7 @@ class WebsocketAPIClient:
         self._sub_topics = self._sub_topics - topics
 
     async def robot_ping(self):
-        data = {"timestamp": datetime.now().timestamp()}
+        data = {"timestamp": int(datetime.now().timestamp() * 1000)}
         message = {"category": "robotPing", "data": data}
         await self._broadcast(message)
 
@@ -74,11 +74,17 @@ class WebsocketAPIClient:
     async def _connect(self, **kwargs):
         # disable ping
         kwargs["ping_interval"] = None
-        try:
-            self._ws = await websockets.connect(self._uri, **kwargs)
-        except Exception as exc:
-            logger.exception("Failed to connect to %s: %s.", self._uri, exc)
-            raise
+        retry_count = 0
+        for i in range(3):
+            try:
+                self._ws = await websockets.connect(self._uri, **kwargs)
+                break
+            except Exception as exc:
+                logger.exception("Failed to connect to %s: %s.", self._uri, exc)
+                retry_count += 1
+                if retry_count >= 3:
+                    raise
+                await asyncio.sleep(10)
         logger.info("Connected to %s.", self._uri)
 
     async def _reconnect(self):
@@ -108,6 +114,9 @@ class WebsocketAPIClient:
         data = {"cmd": "broadcast", "message": message}
         await self._deliver(json.dumps(data))
 
+    async def _pong(self, message: Dict[str, int]):
+        await self._send(json.dumps({"pong": message["ping"]}))
+
     # todo: handle stop signal
     async def _run(self):
         await self._connect()
@@ -132,13 +141,18 @@ class WebsocketAPIClient:
                     try:
                         message = incoming.result()
                         logger.debug("<<< %s", message)
-                    except websockets.ConnectionClosed:
-                        break
+                    except websockets.ConnectionClosed as exc:
+                        logger.exception(exc)
+                        await self._reconnect()
                     else:
-                        try:
-                            self._outputs.put_nowait(message)
-                        except asyncio.QueueFull:
-                            logger.warning("The outputs queue is full.")
+                        decoded = json.loads(message)
+                        if "ping" in decoded:
+                            await self._pong(decoded)
+                        else:
+                            try:
+                                self._outputs.put_nowait(decoded)
+                            except asyncio.QueueFull:
+                                logger.warning("The outputs queue is full.")
 
                 if outgoing in done:
                     message = outgoing.result()
@@ -147,10 +161,10 @@ class WebsocketAPIClient:
             await self.close()
 
     async def close(self):
-        await self._ws.close()
-        close_status = exceptions.format_close(
-            self._ws.close_code, self._ws.close_reason
-        )
+        ws = self._ws
+        self._ws = None
+        await ws.close()
+        close_status = exceptions.format_close(ws.close_code, ws.close_reason)
         logger.info(f"Connection closed: {close_status}.")
 
 
