@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 from datetime import datetime
-from typing import Any, Dict, Iterable, Optional, Set
+from typing import Any, Dict, Iterable, List, Optional, Set, Union
 
 import httpx
 import websockets
@@ -173,6 +173,9 @@ ROBOT_PING_REQ_PATH = "/robots/{robot_id}/ping/"
 ROBOT_ASSET_RECORD_REQ_PATH = "/robots/{robot_id}/assetRecord/"
 ROBOT_STRATEGY_PARAMETERS_REQ_PATH = "/robots/{robot_id}/strategyParameters/"
 ROBOT_CREDENTIAL_KEY_REQ_PATH = "/robots/{robot_id}/credentialKey/"
+ROBOT_POSITION_STORE_REQ_PATH = "/robots/{robot_id}/positionStore/"
+ROBOT_ORDER_STORE_REQ_PATH = "/robots/{robot_id}/orderStore/"
+ROBOT_STRATEGY_STORE_REQ_PATH = "/robots/{robot_id}/strategyStore/"
 
 
 class RESTAPIClient:
@@ -187,6 +190,20 @@ class RESTAPIClient:
     async def update_robot_asset_record(self, robot_id: int, data: Dict[str, Any]):
         req_path = ROBOT_ASSET_RECORD_REQ_PATH.format(robot_id=robot_id)
         return await self._request("PATCH", req_path, data=data)
+
+    async def update_robot_strategy_store(self, robot_id: int, data: Dict[str, Any]):
+        req_path = ROBOT_STRATEGY_STORE_REQ_PATH.format(robot_id=robot_id)
+        return await self._request("PUT", req_path, data=data)
+
+    async def update_robot_position_store(
+        self, robot_id: int, data: List[Dict[str, Any]]
+    ):
+        req_path = ROBOT_POSITION_STORE_REQ_PATH.format(robot_id=robot_id)
+        return await self._request("PUT", req_path, data=data)
+
+    async def update_robot_order_store(self, robot_id: int, data: List[Dict[str, Any]]):
+        req_path = ROBOT_ORDER_STORE_REQ_PATH.format(robot_id=robot_id)
+        return await self._request("PUT", req_path, data=data)
 
     async def ping_robot(self, robot_id: int):
         req_path = ROBOT_PING_REQ_PATH.format(robot_id=robot_id)
@@ -206,7 +223,7 @@ class RESTAPIClient:
         req_path: str,
         headers: Optional[Dict[str, str]] = None,
         params: Optional[Dict[str, str]] = None,
-        data: Optional[Dict] = None,
+        data: Optional[Union[Dict, List]] = None,
         auth: bool = True,
     ):
         req_headers = {"Content-Type": "application/json"}
