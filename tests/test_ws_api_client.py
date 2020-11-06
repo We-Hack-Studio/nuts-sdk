@@ -1,4 +1,5 @@
 import logging
+import random
 
 from yufuquantsdk.clients import WebsocketAPIClient
 
@@ -15,11 +16,57 @@ async def main():
     ws_api_client = WebsocketAPIClient(uri=uri)
 
     await ws_api_client.auth(api_key)
-    await ws_api_client.sub(topics=["robot#5.log"])
+    await ws_api_client.sub(topics=["robot#9.log", "robot#9.store"])
     while True:
         await ws_api_client.robot_ping()
         await ws_api_client.robot_log("Test robot log...", level="INFO")
-        await asyncio.sleep(1)
+        await ws_api_client.robot_position_store(
+            positions=[
+                {
+                    "qty": random.randint(1, 3),
+                    "side": -1,
+                    "liqPrice": 100,
+                    "avgPrice": 355,
+                    "unrealizedPnl": 0.1,
+                }
+            ]
+        )
+        await ws_api_client.robot_order_store(
+            orders=[
+                {
+                    "qty": random.randint(1, 3),
+                    "side": -1,
+                    "price": 355,
+                    "type": "limit",
+                    "id": "123456",
+                }
+            ]
+        )
+        await ws_api_client.robot_strategy_store(
+            data={
+                "parametersExt": [
+                    {
+                        "code": "maxPosQty",
+                        "name": "最大持仓数量",
+                        "type": "float",
+                        "value": random.randint(100, 150),
+                        "description": "",
+                        "editable": False,
+                        "group": "头寸管理",
+                    },
+                    {
+                        "code": "openPosQty",
+                        "name": "单次开仓数量",
+                        "type": "float",
+                        "value": 100,
+                        "description": "单次开仓（即单笔挂单）数量。",
+                        "editable": False,
+                        "group": "头寸管理",
+                    },
+                ]
+            }
+        )
+        await asyncio.sleep(5)
 
 
 if __name__ == "__main__":

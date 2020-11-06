@@ -71,6 +71,30 @@ class WebsocketAPIClient:
         message = {"category": "robotLog", "data": data}
         await self._broadcast(message)
 
+    async def robot_position_store(self, positions):
+        data = {
+            "updatedAt": datetime.now().isoformat(),
+            "positions": positions,
+        }
+        message = {"category": "robotPositionStore", "data": data}
+        await self._broadcast(message)
+
+    async def robot_order_store(self, orders):
+        data = {
+            "updatedAt": datetime.now().isoformat(),
+            "orders": orders,
+        }
+        message = {"category": "robotOrderStore", "data": data}
+        await self._broadcast(message)
+
+    async def robot_strategy_store(self, data):
+        d = {
+            "updatedAt": datetime.now().isoformat(),
+            "data": data,
+        }
+        message = {"category": "robotStrategyStore", "data": d}
+        await self._broadcast(message)
+
     async def _connect(self, **kwargs):
         # disable ping
         kwargs["ping_interval"] = None
